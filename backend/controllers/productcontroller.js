@@ -26,7 +26,7 @@ export const createProduct = async(req,res)=>{
         VALUES (${name},${price},${image})
         `
         console.log("new product added:",newProduct);
-        res.status(201).json({success:true,data:newProduct[0]})
+        res.status(201).json({success:true, data:newProduct[0]});
     } catch (error) {
         console.log("Error getProducts",error);
         res.status(500).json({success:false,message:error.message})
