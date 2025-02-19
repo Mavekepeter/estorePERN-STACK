@@ -2,14 +2,16 @@ import { create } from "zustand";
 import axios from "axios";
 import toast from 'react-hot-toast'
 
-const BASE_URL ="http://localhost:3000"
+//Base url will be dynamic depending on the environment
+
+const BASE_URL = import.meta.env.MODE === "development" ? "http://localhost:3000" : "";
 
 export const useproductStore = create((set,get)=>({
     //products state
     products:[],
     loading:false,
     error:null,
-    
+    currentProduct:null,
     //form state
     formData:{
         name:"",
@@ -43,13 +45,13 @@ export const useproductStore = create((set,get)=>({
     fetchProducts:async ()=>{
         set({loading:true});
         try {
-         const response =   await axios.get(`${BASE_URL}/api/products`)
-         set({products:response.data.data,error:null})
+          const response = await axios.get(`${BASE_URL}/api/products`);
+          set({ products: response.data.data, error: null });
         } catch (err) {
-            if (err.status = 429) set({error:"Rate limit exceeded"});
-            else set({error:"Something went wrong"})
-        }finally{
-            set({loading:false});
+          if (err.status == 429) set({ error: "Rate limit exceeded", products: [] });
+          else set({ error: "Something went wrong", products: [] });
+        } finally {
+          set({ loading: false });
         }
     },
     
@@ -67,5 +69,41 @@ export const useproductStore = create((set,get)=>({
       set({ loading: false });
     }
   },
+
+  fetchProduct:async(id)=>{
+    set({loading:true});
+    try {
+      const response = await axios.get(`${BASE_URL}/api/products/${id}`);
+      set({currentProduct: response.data.data,
+        formData:response.data.data,//prefill form with current product data
+        error:null,
+
+
+      });
+    } catch (error) {
+      console.log("Error in the fetchProduct function",error);
+      set({error:"Some thing went wrong",currentProduct:null})
+      
+    }finally{
+      set({loading:false})
+    }
+  },
+  updateProduct:async(id)=>{
+    set({loading:true});
+    try {
+      const {formData} = get();
+      const response = await axios.put(`${BASE_URL}/api/products/${id}`,formData);
+      set({currentProduct:response.data.data});
+      toast.success("product updated succesfully")
+    } catch (error) {
+      toast.error("Something went wrong");
+      console.log("Error in updateProduct function",error);
+      
+    }finally{
+      set({loading:false})
+    }
+
+  },
+
 
 }));
